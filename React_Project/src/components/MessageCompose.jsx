@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Sparkles, Send, RotateCcw, Edit3, Check, Loader2, ArrowLeft, User, Shield } from 'lucide-react';
+import { Mail, Sparkles, Send, Edit3, Check, Loader2, ArrowLeft, User, Shield } from 'lucide-react';
 import GoogleLoginButton from './GoogleLogin';
 
 const TONE_OPTIONS = [
@@ -84,25 +84,7 @@ const MessageCompose = () => {
     setIsConverting(true);
 
     try {
-      // 1. Node.js 백엔드로 제목 변환 요청
-      const subjectResponse = await fetch('http://localhost:3000/api/tone-convert', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: emailSubject.trim(),
-          tone: selectedTone
-        })
-      });
-
-      if (!subjectResponse.ok) {
-        throw new Error('제목 변환 실패');
-      }
-
-      const subjectData = await subjectResponse.json();
-
-      // 2. Node.js 백엔드로 본문 변환 요청
+      // 1. Node.js 백엔드로 본문 변환 요청
       const messageResponse = await fetch('http://localhost:3000/api/tone-convert', {
         method: 'POST',
         headers: {
@@ -110,7 +92,8 @@ const MessageCompose = () => {
         },
         body: JSON.stringify({
           message: originalMessage,
-          tone: selectedTone
+          tone: selectedTone,
+          is_subject: false  // 하나의 엔드포인트에서 본문 구분 위해 false 전달
         })
       });
 
@@ -120,8 +103,28 @@ const MessageCompose = () => {
 
       const messageData = await messageResponse.json();
 
-      setConvertedSubject(subjectData.converted);   // 백엔드에서 받은 변환된 제목 저장
-      setConvertedMessage(messageData.converted);   // 백엔드에서 받은 변환된 본문 저장
+      // 2. Node.js 백엔드로 제목 변환 요청 (변환된 본문을 전달)
+      const subjectResponse = await fetch('http://localhost:3000/api/tone-convert', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: emailSubject.trim(),
+          context: messageData.converted,  // 변환된 본문을 제목 변환 시 전달
+          tone: selectedTone,
+          is_subject: true  // 하나의 엔드포인트에서 제목 구분 위해 true 전달
+        })
+      });
+
+      if (!subjectResponse.ok) {
+        throw new Error('제목 변환 실패');
+      }
+
+      const subjectData = await subjectResponse.json();
+
+      setConvertedSubject(subjectData.converted);   // 백엔드에서 받은 변환된 제목을 상태에 저장
+      setConvertedMessage(messageData.converted);   // 백엔드에서 받은 변환된 본문을 상태에 저장
       setIsConverting(false);
       setStep(2);
 

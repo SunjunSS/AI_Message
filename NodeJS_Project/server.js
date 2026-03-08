@@ -11,22 +11,16 @@ app.get('/', (req, res) => {
   res.json({ message: '서버가 정상 작동 중입니다!' });
 });
 
-// 요청 카운터 (제목/본문 구분용)
-let requestCount = 0;
-
 // 톤 변환 API - Colab 서버로 연결
 app.post('/api/tone-convert', async (req, res) => {
   try {
-    const { message, tone } = req.body;
-
-    // 요청 순서로 제목/본문 구분 (홀수: 제목, 짝수: 본문)
-    requestCount++;
-    const isSubject = requestCount % 2 === 1;
-    const messageType = isSubject ? '📧 제목' : '📝 본문';
+    const { message, tone, is_subject, context } = req.body;  // ⭐ is_subject와 context 추가
+    
+    const messageType = is_subject ? '📧 제목' : '📝 본문';  // ⭐ 프론트에서 받은 값 사용
 
     console.log('\n====================================');
     console.log(`📨 ${messageType} 변환 요청 받음`);
-    if (isSubject) {
+    if (is_subject) {
       console.log('제목:', message);
     } else {
       console.log('본문:', message);
@@ -44,7 +38,8 @@ app.post('/api/tone-convert', async (req, res) => {
       body: JSON.stringify({
         message: message,
         tone: tone,
-        is_subject: isSubject  // ← 제목,본문 구분 정보 추가
+        is_subject: is_subject,  // 프론트에서 받은 값 전달
+        context: context  // context 전달
       })
     });
 
@@ -55,12 +50,12 @@ app.post('/api/tone-convert', async (req, res) => {
     const colabData = await colabResponse.json();
 
     // 📝 본문일 때만 줄바꿈 추가
-    if (!isSubject) {
+    if (!is_subject) {
       let formattedMessage = colabData.converted
         .replace(/\. /g, '.\n\n')      // 마침표 뒤
         .replace(/\? /g, '?\n\n')      // 물음표 뒤
-        .replace(/\! /g, '!\n\n')     // 느낌표 뒤
-        .replace(/,\s/g, ',\n');         // 쉼표 뒤
+        .replace(/\! /g, '!\n\n')    // 느낌표 뒤
+        .replace(/,\s/g, ',\n');       // 쉼표 뒤
 
       // 응답 데이터 수정
       colabData.converted = formattedMessage;
@@ -70,11 +65,6 @@ app.post('/api/tone-convert', async (req, res) => {
     console.log('원본:', colabData.original);
     console.log('변환:', colabData.converted);
     console.log('====================================');
-
-    // 본문 변환 완료 시 카운터 리셋
-    if (!isSubject) {
-      requestCount = 0;
-    }
 
     // 프론트엔드로 Colab 응답 그대로 전달
     res.json(colabData);
