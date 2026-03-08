@@ -410,14 +410,14 @@ const MessageCompose = () => {
                   <Sparkles size={18} className="text-blue-600" />
                   톤앤매너 선택
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="flex flex-wrap justify-center gap-3">
                   {TONE_OPTIONS.map((tone) => (
                     <button
                       key={tone.id}
                       onClick={() => setSelectedTone(tone.id)}
-                      className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left
+                      className={`relative p-4 rounded-xl border-2 text-left w-full sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]
                         ${selectedTone === tone.id
-                          ? getColorClasses(tone.color, true) + ' shadow-md scale-[1.02]'
+                          ? getColorClasses(tone.color, true) + ' shadow-md'
                           : 'border-gray-200 bg-white ' + getColorClasses(tone.color)
                         }`}
                     >
