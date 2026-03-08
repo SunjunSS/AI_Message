@@ -33,8 +33,8 @@ const MessageCompose = () => {
   const [convertedMessage, setConvertedMessage] = useState('');
   const [isConverting, setIsConverting] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isEditingSubject, setIsEditingSubject] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);  // 본문 영역의 편집 상태 관리
+  const [isEditingSubject, setIsEditingSubject] = useState(false);  // 제목 영역의 편집 상태 관리
   const [step, setStep] = useState(0);
 
   // 이메일 형식 체크 함수(정규식)
@@ -85,11 +85,13 @@ const MessageCompose = () => {
 
     try {
       // 1. Node.js 백엔드로 본문 변환 요청
+      // 백엔드 서버 엔드포인트: port 3000의 /api/tone-convert
       const messageResponse = await fetch('http://localhost:3000/api/tone-convert', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        // 프론트에서 JSON 형식으로 데이터 전달
         body: JSON.stringify({
           message: originalMessage,
           tone: selectedTone,
@@ -101,14 +103,16 @@ const MessageCompose = () => {
         throw new Error('본문 변환 실패');
       }
 
-      const messageData = await messageResponse.json();
+      const messageData = await messageResponse.json();  // 변환된 본문 데이터를 JSON 형식으로 파싱
 
       // 2. Node.js 백엔드로 제목 변환 요청 (변환된 본문을 전달)
+      // 백엔드 서버 엔드포인트: port 3000의 /api/tone-convert
       const subjectResponse = await fetch('http://localhost:3000/api/tone-convert', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        // 프론트에서 JSON 형식으로 데이터 전달
         body: JSON.stringify({
           message: emailSubject.trim(),
           context: messageData.converted,  // 변환된 본문을 제목 변환 시 전달
@@ -121,10 +125,10 @@ const MessageCompose = () => {
         throw new Error('제목 변환 실패');
       }
 
-      const subjectData = await subjectResponse.json();
+      const subjectData = await subjectResponse.json();  // 변환된 제목 데이터를 JSON 형식으로 파싱
 
-      setConvertedSubject(subjectData.converted);   // 백엔드에서 받은 변환된 제목을 상태에 저장
-      setConvertedMessage(messageData.converted);   // 백엔드에서 받은 변환된 본문을 상태에 저장
+      setConvertedSubject(subjectData.converted);   // 백엔드에서 받은 변환된 제목을 상태 변수에 저장
+      setConvertedMessage(messageData.converted);   // 백엔드에서 받은 변환된 본문을 상태 변수에 저장
       setIsConverting(false);
       setStep(2);
 
@@ -501,13 +505,13 @@ const MessageCompose = () => {
                       <>
                         <input
                           type="text"
-                          value={convertedSubject}
-                          onChange={e => setConvertedSubject(e.target.value)}
+                          value={convertedSubject}  // 변환된 제목을 input 값으로 표시
+                          onChange={e => setConvertedSubject(e.target.value)}  // 입력값이 바뀔 때 상태 변수에 저장
                           className="px-2 py-1 border border-gray-300 rounded-md text-blue-900 font-bold text-base flex-1"
                           style={{ minWidth: "180px" }}
                         />
                         <button
-                          onClick={() => setIsEditingSubject(false)}
+                          onClick={() => setIsEditingSubject(false)}  // 제목 수정 버튼 클릭 시 편집 모드로 진입
                           className="ml-2 text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
                         >
                           <Check size={14} />
@@ -518,7 +522,7 @@ const MessageCompose = () => {
                       <>
                         <span className="text-blue-900 font-bold">{convertedSubject}</span>
                         <button
-                          onClick={() => setIsEditingSubject(true)}
+                          onClick={() => setIsEditingSubject(true)}  // 제목 수정 완료 버튼 클릭 시 편집 모드 종료
                           className="ml-2 text-xs text-gray-600 hover:text-blue-600 flex items-center gap-1 transition-colors"
                         >
                           <Edit3 size={14} />
@@ -552,7 +556,7 @@ const MessageCompose = () => {
                     </span>
                   </div>
                   <button
-                    onClick={() => setIsEditing(!isEditing)}
+                    onClick={() => setIsEditing(!isEditing)}  // 편집 버튼 클릭 시 편집 모드 ↔ 표시 모드 전환 토글
                     className="text-xs text-gray-600 hover:text-blue-600 flex items-center gap-1 transition-colors"
                   >
                     <Edit3 size={14} />
@@ -563,8 +567,8 @@ const MessageCompose = () => {
                 {/* 실제 변환 결과(수정 or 보기) */}
                 {isEditing ? (
                   <textarea
-                    value={convertedMessage}
-                    onChange={(e) => setConvertedMessage(e.target.value)}
+                    value={convertedMessage}  // 변환된 메시지를 textarea 값으로 표시
+                    onChange={(e) => setConvertedMessage(e.target.value)}  // 입력값이 바뀔 때 상태 변수에 저장
                     rows={8}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none text-gray-900"
                   />
