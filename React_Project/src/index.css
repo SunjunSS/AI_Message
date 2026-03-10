@@ -8,3 +8,16 @@
 .hide-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
+
+/* AI 추천 톤: 글로우 효과 */
+.pulse-blue    { animation: pulseBlue    1.5s ease-in-out infinite; }
+.pulse-slate   { animation: pulseSlate   1.5s ease-in-out infinite; }
+.pulse-emerald { animation: pulseEmerald 1.5s ease-in-out infinite; }
+.pulse-orange  { animation: pulseOrange  1.5s ease-in-out infinite; }
+.pulse-purple  { animation: pulsePurple  1.5s ease-in-out infinite; }
+
+@keyframes pulseBlue    { 0%, 100% { box-shadow: none; border-color: #e5e7eb; } 50% { box-shadow: 0 0 6px #3b82f6; border-color: #3b82f6; } }
+@keyframes pulseSlate   { 0%, 100% { box-shadow: none; border-color: #e5e7eb; } 50% { box-shadow: 0 0 6px #64748b; border-color: #64748b; } }
+@keyframes pulseEmerald { 0%, 100% { box-shadow: none; border-color: #e5e7eb; } 50% { box-shadow: 0 0 6px #10b981; border-color: #10b981; } }
+@keyframes pulseOrange  { 0%, 100% { box-shadow: none; border-color: #e5e7eb; } 50% { box-shadow: 0 0 6px #f97316; border-color: #f97316; } }
+@keyframes pulsePurple  { 0%, 100% { box-shadow: none; border-color: #e5e7eb; } 50% { box-shadow: 0 0 6px #a855f7; border-color: #a855f7; } }

@@ -13,6 +13,50 @@ app.get('/', (req, res) => {
   res.json({ message: '서버가 정상 작동 중입니다!' });
 });
 
+// 감정 분석 + 톤 추천 API 엔드포인트
+// 프론트엔드의 요청을 받아 Colab 서버(Flask)로 중계
+app.post('/api/analyze', async (req, res) => {
+  try {
+    const { message } = req.body;  // 프론트엔드에서 받은 메시지
+
+    console.log('\n====================================');
+    console.log('🧠 감정 분석 + 톤 추천 요청 받음');
+    console.log('메시지:', message);
+    console.log('====================================');
+
+    // Colab 서버(Flask)로 중계
+    // Colab 서버 감정 분석 + 톤 추천 엔드포인트: /analyze
+    console.log('🔄 Colab 서버로 감정 분석 + 톤 추천 요청 전송 중...');
+    const colabResponse = await fetch('https://tone-converter.loca.lt/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message })
+    });
+
+    if (!colabResponse.ok) {
+      throw new Error(`Colab 서버 응답 실패: ${colabResponse.status}`);
+    }
+
+    // Colab 응답 데이터 파싱
+    // { emotion_analysis: [ ... ], recommended_tones: ["professional", "polite"] } 형태로 받아옴
+    const colabData = await colabResponse.json();
+
+    console.log('✅ 감정 분석 + 톤 추천 결과:');
+    console.log('추천 톤:', colabData.recommended_tones);
+    console.log('====================================');
+
+    // 프론트엔드로 Colab 응답 전달
+    res.json(colabData);
+
+  } catch (error) {
+    console.error('❌ 에러:', error.message);
+    res.status(500).json({
+      error: '감정 분석 + 톤 추천 중 오류가 발생했습니다.',
+      details: error.message
+    });
+  }
+});
+
 // 톤 변환 API 엔드포인트
 // 프론트엔드의 톤 변환 요청을 받아 Colab 서버(Flask)로 중계
 app.post('/api/tone-convert', async (req, res) => {

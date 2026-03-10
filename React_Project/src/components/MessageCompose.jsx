@@ -36,6 +36,8 @@ const MessageCompose = () => {
   const [isEditing, setIsEditing] = useState(false);  // 본문 영역의 편집 상태 관리
   const [isEditingSubject, setIsEditingSubject] = useState(false);  // 제목 영역의 편집 상태 관리
   const [step, setStep] = useState(0);
+  const [recommendedTones, setRecommendedTones] = useState([]);  // 추천 톤 키 리스트
+  const [isAnalyzing, setIsAnalyzing] = useState(false);         // 감정 분석 중 여부
 
   // 이메일 형식 체크 함수(정규식)
   const isValidEmail = (email) => {
@@ -76,6 +78,54 @@ const MessageCompose = () => {
     setStep(isLoggedIn ? 1 : 0);
     setIsEditing(false);
   };
+
+  // 텍스트 입력 시 감정 분석 후 추천 톤 자동 업데이트
+  const handleAnalyze = async () => {
+    if (!originalMessage.trim()) return; // 빈 텍스트면 실행 안 함
+
+    setIsAnalyzing(true);
+
+    try {
+      // 1. Node.js 백엔드로 감정 분석 + 톤 추천 요청
+      // 백엔드 서버 엔드포인트: port 3000의 /api/analyze
+      const response = await fetch('http://localhost:3000/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: originalMessage })
+      });
+
+      if (!response.ok) throw new Error('감정 분석 실패');
+
+      const data = await response.json();
+
+      console.log('✅ 추천 톤 데이터:', data.recommended_tones);  // 추가
+      console.log('✅ recommendedTones 설정 전:', recommendedTones);  // 추가
+      // data.recommended_tones = ["professional", "polite"] 형태로 받아옴
+      setRecommendedTones(data.recommended_tones);  // 추천 톤 저장
+
+    } catch (error) {
+      console.error('❌ 감정 분석 실패:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // 타이핑 멈추면 자동으로 감정 분석
+  useEffect(() => {
+    // 텍스트 비어있으면 초기화하고 종료
+    if (!originalMessage.trim()) {
+      setRecommendedTones([]);  // 텍스트 지우면 추천 초기화
+      setSelectedTone(null);    // 텍스트 지우면 선택 톤 초기화
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      handleAnalyze();
+    }, 1000);  // 1초 후 자동 호출
+
+    return () => clearTimeout(timer);  // 타이핑 중이면 타이머 초기화
+  }, [originalMessage]);
+
 
   // AI 변환 버튼 클릭 시(제목, 본문 모두 톤앤매너에 맞게 AI 변환)
   const handleConvert = async () => {
@@ -242,6 +292,18 @@ const MessageCompose = () => {
   // 이메일 전송 버튼 클릭 핸들러
   const handleSend = async () => {
     await sendViaGmail();
+  };
+
+  // AI 추천 톤: 글로우 효과 클래스 반환
+  const getPulseClass = (color) => {
+    const colors = {
+      blue: 'pulse-blue',
+      slate: 'pulse-slate',
+      emerald: 'pulse-emerald',
+      orange: 'pulse-orange',
+      purple: 'pulse-purple',
+    };
+    return colors[color] || colors.blue;
   };
 
   // 톤앤매너 버튼 스타일(선택,미선택) 클래스 반환
@@ -418,28 +480,38 @@ const MessageCompose = () => {
                   톤앤매너 선택
                 </label>
                 <div className="flex flex-wrap justify-center gap-3">
-                  {TONE_OPTIONS.map((tone) => (
-                    <button
-                      key={tone.id}
-                      onClick={() => setSelectedTone(tone.id)}
-                      className={`relative p-4 rounded-xl border-2 text-left w-full sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]
-                        ${selectedTone === tone.id
-                          ? getColorClasses(tone.color, true) + ' shadow-md'
-                          : 'border-gray-200 bg-white ' + getColorClasses(tone.color)
-                        }`}
-                    >
-                      {selectedTone === tone.id && (
-                        <div className="absolute top-2 right-2">
-                          <Check size={18} className="text-current" />
+                  {TONE_OPTIONS.map((tone) => {
+                    console.log(tone.id, '포함여부:', recommendedTones.includes(tone.id));
+                    return (
+                      <button
+                        key={tone.id}
+                        // 톤 선택,취소 토글 (같은 톤 재클릭 시 선택 해제)
+                        onClick={() => setSelectedTone(selectedTone === tone.id ? null : tone.id)}
+                        className={`relative p-4 rounded-xl border-2 text-left w-full sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]
+                          transition-all duration-300
+                          ${selectedTone === tone.id  // 선택된 톤 -> getColorClasses()
+                            ? getColorClasses(tone.color, true) + ' shadow-md'
+                            : 'border-gray-200 bg-white ' + getColorClasses(tone.color)
+                          }
+                          ${recommendedTones.includes(tone.id) && selectedTone === null  // 추천된 톤 -> getPulseClass()
+                            ? getPulseClass(tone.color)  // 선택된 톤이 없을 때만 글로우 효과
+                            : ''
+                          }
+                        `}
+                      >
+                        {selectedTone === tone.id && (
+                          <div className="absolute top-2 right-2">
+                            <Check size={18} className="text-current" />
+                          </div>
+                        )}
+                        <div className="flex items-center gap-3 mb-1">
+                          <span className="text-2xl">{tone.emoji}</span>
+                          <span className="font-bold text-base">{tone.name}</span>
                         </div>
-                      )}
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="text-2xl">{tone.emoji}</span>
-                        <span className="font-bold text-base">{tone.name}</span>
-                      </div>
-                      <p className="text-xs text-gray-500 ml-9">{tone.target}</p>
-                    </button>
-                  ))}
+                        <p className="text-xs text-gray-500 ml-9">{tone.target}</p>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
