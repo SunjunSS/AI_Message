@@ -1,14 +1,13 @@
 import json
 
-# ===== 입력 파일 =====
+# 입력 파일 (원본 데이터)
 INPUT_PATH = "dialogue_data.json"
 
-# ===== 출력 파일 =====
+# 출력 파일 (변환 데이터)
 OUTPUT_PATH = "emotion_mapping_data.jsonl"
 
-# ==========================
-# emotion code → group 매핑 (E10~E69, 총 60개)
-# ==========================
+# 감정 코드 → 감정 그룹 매핑 (E10~E69, 총 60개)
+# {"E10": "분노", "E11": "분노", ..., "E69": "기쁨"}
 emotion_group_map = {}
 
 # 분노: E10~E19
@@ -36,9 +35,7 @@ for i in range(60, 70):
     emotion_group_map[f"E{i}"] = "기쁨"
 
 
-# ==========================
 # JSON 로드
-# ==========================
 with open(INPUT_PATH, "r", encoding="utf-8") as f:
     data = json.load(f)
 
@@ -52,17 +49,20 @@ unknown_codes = {}
 with open(OUTPUT_PATH, "w", encoding="utf-8") as out:
     for item in data:
         try:
-            emotion_code = item["profile"]["emotion"]["type"]
+            # 원본 데이터에서 감정 코드 추출
+            emotion_code = item["profile"]["emotion"]["type"]  # ex) "E32"
         except Exception:
             skipped += 1
             continue
-
-        emotion_group = emotion_group_map.get(emotion_code)
+        
+        # 딕셔너리에서 코드에 해당하는 감정 이름으로 변환
+        emotion_group = emotion_group_map.get(emotion_code)  # ex) "불안"
         if emotion_group is None:
             # 혹시 E10~E69 밖의 코드가 있으면 기록만 해두고 스킵
             unknown_codes[emotion_code] = unknown_codes.get(emotion_code, 0) + 1
             continue
 
+        # 대화 내용 추출 (HS01, HS02, HS03)
         contents = item.get("talk", {}).get("content", {})
 
         for key in ["HS01", "HS02", "HS03"]:
@@ -70,6 +70,7 @@ with open(OUTPUT_PATH, "w", encoding="utf-8") as out:
             if not text:
                 continue
 
+            # 텍스트 + 감정을 묶어서 각각 한 줄로 저장
             row = {"text": text, "emotion": emotion_group}
             out.write(json.dumps(row, ensure_ascii=False) + "\n")
             count += 1

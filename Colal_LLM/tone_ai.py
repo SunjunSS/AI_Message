@@ -126,7 +126,7 @@ def analyze_emotion(text: str) -> dict:
     }
 
 
-# 톤 추천 함수 (4B Instruct에 맞게 프롬프트 조정)
+# 톤 추천 함수
 def recommend_tones_by_llm(text: str, emotion_results: list) -> list:
     """
     Gemma 3 4B IT에게 감정 분석 결과를 전달하여 적합한 톤 추천 요청
@@ -200,7 +200,7 @@ def recommend_tones_by_llm(text: str, emotion_results: list) -> list:
     return recommended
 
 
-# 톤 변환 함수 (4B Instruct에 맞게 프롬프트 조정)
+# 톤 변환 함수
 def convert_tone(message: str, tone_desc: str, is_subject: bool = False, max_new_tokens: int = 300) -> str:
     """
     톤 변환 함수
