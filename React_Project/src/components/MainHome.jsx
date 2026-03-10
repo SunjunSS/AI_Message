@@ -10,45 +10,45 @@ const fadeUpVariant = {
 
 const TONE_DATA = [
   {
-    id: 0, 
-    emoji: "🎓", 
-    name: "정중한", 
+    id: 0,
+    emoji: "🎓",
+    name: "정중한",
     target: "상사, 교수님",
     original: "교수님 저 내일 아파서 결석합니다.",
     result: "교수님, 안녕하십니까. 다름이 아니오라 내일 건강상의 사유로 부득이하게 수업에 참석하지 못하게 되어 양해를 구하고자 연락드립니다. 죄송합니다.",
     color: "text-blue-600 bg-blue-50 border-blue-200"
   },
   {
-    id: 1, 
-    emoji: "💼", 
-    name: "전문적인", 
+    id: 1,
+    emoji: "💼",
+    name: "전문적인",
     target: "동료, 고객사",
     original: "회의 자료 보냅니다. 확인 부탁해요.",
     result: "회의 자료를 첨부하여 송부드립니다. 3월 7일까지 검토 후 회신 주시면 감사하겠습니다. 추가 논의가 필요하시면 언제든 연락 주시기 바랍니다.",
     color: "text-slate-700 bg-slate-100 border-slate-300"
   },
   {
-    id: 2, 
-    emoji: "💡", 
-    name: "설득적인", 
+    id: 2,
+    emoji: "💡",
+    name: "설득적인",
     target: "투자자, 협업 대상",
     original: "이 프로젝트 같이 하면 좋을 것 같아요.",
     result: "이번 프로젝트를 함께 진행하신다면 귀사의 기술력과 저희 마케팅 역량이 시너지를 낼 수 있을 것으로 기대됩니다. 협업을 통해 6개월 내 시장 점유율 20% 향상이라는 목표 달성이 가능할 것입니다.",
     color: "text-emerald-600 bg-emerald-50 border-emerald-200"
   },
   {
-    id: 3, 
-    emoji: "🙏", 
-    name: "공손한", 
+    id: 3,
+    emoji: "🙏",
+    name: "공손한",
     target: "민원인, 고객",
     original: "죄송한데 약속 시간 좀 미뤄도 될까요?",
     result: "급한 업무가 생겨 약속 시간을 지키지 못하게 되었습니다. 정말 죄송합니다. 오후 3시 이후로 조정 가능하실까요? 불편을 드려 다시 한번 사과드립니다.",
     color: "text-orange-500 bg-orange-50 border-orange-200"
   },
   {
-    id: 4, 
-    emoji: "🤝", 
-    name: "협조적인", 
+    id: 4,
+    emoji: "🤝",
+    name: "협조적인",
     target: "팀원, 선배",
     original: "자료 좀 보내주시면 안될까요?",
     result: "바쁘신 와중에 번거로우시겠지만, 기획안 작성을 위해 지난주 회의록을 공유해 주실 수 있으실까요? 이번 주 금요일까지 받을 수 있다면 정말 감사하겠습니다. 어려우시면 말씀해 주세요!",
@@ -83,31 +83,42 @@ const MainHome = () => {
             편하게 쓰고 톤앤매너만 고르세요. 변환부터 전송까지 한 번에.
           </p>
 
-          {/* 🚀 바깥 박스를 없애고 단일 박스로 통합! (등장 모션은 최상단 부모가 알아서 해줌) */}
+          {/* 플로팅 애니메이션 wrapper */}
           <motion.div
-            animate={{ y: [0, -15, 0] }} // 단순하게 위아래로만 부드럽게 움직임
+            animate={{ y: [0, -10, 0] }}
             transition={{
-              duration: 4,           // 왕복 4초 (가장 자연스러운 호흡 속도)
-              repeat: Infinity,      // 무한 반복
-              ease: "easeInOut"      // 부드러운 감속/가속
+              duration: 2.3,
+              repeat: Infinity,
+              times: [0, 0.5, 1],
+              ease: ["easeInOut", "easeInOut"],
             }}
-            style={{ transform: "translateZ(0)" }} // 💡 텍스트 깜빡임 방지 (GPU 가속)
-            className="w-full max-w-sm md:max-w-lg bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl shadow-[0_15px_40px_-15px_rgba(0,0,0,0.1)] border border-gray-100 text-left cursor-default will-change-transform"
+            className="w-full max-w-sm md:max-w-lg"
           >
-            {/* 위쪽: 내가 쓴 말 (구조 통일: opacity-80 적용) */}
-            <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3 mb-4 opacity-80">
-              <span className="w-fit bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">내가 쓴 말</span>
-              <p className="text-gray-600 text-sm mt-1 sm:mt-0 leading-snug">교수님 저 내일 아파서 결석합니다. 죄송합니다.</p>
-            </div>
+            {/* 카드는 별도 div로 분리 */}
+            <div
+              style={{
+                transform: "translate3d(0,0,0)",
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
+                isolation: "isolate",
+              }}
+              className="bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl shadow-[0_15px_40px_-15px_rgba(0,0,0,0.1)] border border-gray-100 text-left cursor-default"
+            >
+              {/* 위쪽: 내가 쓴 말 */}
+              <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3 mb-4 opacity-80">
+                <span className="w-fit bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">내가 쓴 말</span>
+                <p className="text-gray-600 text-sm mt-1 sm:mt-0 leading-snug">교수님 저 내일 아파서 결석합니다. 죄송합니다.</p>
+              </div>
 
-            {/* 아래쪽: 정중한 (구조 통일: 위쪽과 완전히 똑같이 opacity-80 적용) */}
-            <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3 opacity-80">
-              <span className="w-fit bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1">
-                <Sparkles size={12} /> 정중한
-              </span>
-              <p className="text-gray-900 font-medium text-sm md:text-[15px] leading-relaxed mt-1 sm:mt-0">
-                교수님, 안녕하십니까. 다름이 아니오라 내일 건강상의 사유로 부득이하게 수업에 참석하지 못하게 되어 양해를 구하고자 연락 올립니다.
-              </p>
+              {/* 아래쪽: 정중한 */}
+              <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3 opacity-80">
+                <span className="w-fit bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1">
+                  <Sparkles size={12} /> 정중한
+                </span>
+                <p className="text-gray-900 font-medium text-sm md:text-[15px] leading-relaxed mt-1 sm:mt-0">
+                  교수님, 안녕하십니까. 다름이 아니오라 내일 건강상의 사유로 부득이하게 수업에 참석하지 못하게 되어 양해를 구하고자 연락 올립니다.
+                </p>
+              </div>
             </div>
           </motion.div>
         </motion.div>
