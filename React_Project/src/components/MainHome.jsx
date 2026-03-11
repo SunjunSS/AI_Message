@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Zap, RefreshCcw, Send, ChevronDown, Sparkles } from 'lucide-react';
+import { Mail, Zap, RefreshCcw, Send, ChevronDown, Sparkles, Edit3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const fadeUpVariant = {
@@ -14,6 +14,8 @@ const TONE_DATA = [
     emoji: "🎓",
     name: "정중한",
     target: "상사, 교수님",
+    originalSubject: "내일 결석합니다.",
+    subject: "결석 양해 부탁드립니다.",
     original: "교수님 저 내일 아파서 결석합니다.",
     result: "교수님, 안녕하십니까. 다름이 아니오라 내일 건강상의 사유로 부득이하게 수업에 참석하지 못하게 되어 양해를 구하고자 연락드립니다. 죄송합니다.",
     color: "text-blue-600 bg-blue-50 border-blue-200"
@@ -23,8 +25,10 @@ const TONE_DATA = [
     emoji: "💼",
     name: "전문적인",
     target: "동료, 고객사",
+    originalSubject: "회의 자료 보냅니다.",
+    subject: "회의 자료 송부드립니다.",
     original: "회의 자료 보냅니다. 확인 부탁해요.",
-    result: "회의 자료를 첨부하여 송부드립니다. 3월 7일까지 검토 후 회신 주시면 감사하겠습니다. 추가 논의가 필요하시면 언제든 연락 주시기 바랍니다.",
+    result: "회의 자료를 첨부하여 송부드립니다. 검토 후 회신 주시면 감사하겠습니다. 추가 논의가 필요하시면 언제든 연락 주시기 바랍니다.",
     color: "text-slate-700 bg-slate-100 border-slate-300"
   },
   {
@@ -32,8 +36,10 @@ const TONE_DATA = [
     emoji: "💡",
     name: "설득적인",
     target: "투자자, 협업 대상",
+    originalSubject: "프로젝트 같이 해요.",
+    subject: "프로젝트 협업 제안드립니다.",
     original: "이 프로젝트 같이 하면 좋을 것 같아요.",
-    result: "이번 프로젝트를 함께 진행하신다면 귀사의 기술력과 저희 마케팅 역량이 시너지를 낼 수 있을 것으로 기대됩니다. 협업을 통해 6개월 내 시장 점유율 20% 향상이라는 목표 달성이 가능할 것입니다.",
+    result: "이번 프로젝트를 함께 진행하신다면 귀사의 역량과 저희 팀이 시너지를 발휘할 수 있을 것으로 기대됩니다. 협업 가능 여부를 검토해 주시면 감사하겠습니다.",
     color: "text-emerald-600 bg-emerald-50 border-emerald-200"
   },
   {
@@ -41,8 +47,10 @@ const TONE_DATA = [
     emoji: "🙏",
     name: "공손한",
     target: "민원인, 고객",
+    originalSubject: "약속 시간 미뤄도 될까요?",
+    subject: "약속 시간 변경 요청드립니다.",
     original: "죄송한데 약속 시간 좀 미뤄도 될까요?",
-    result: "급한 업무가 생겨 약속 시간을 지키지 못하게 되었습니다. 정말 죄송합니다. 오후 3시 이후로 조정 가능하실까요? 불편을 드려 다시 한번 사과드립니다.",
+    result: "갑작스럽게 연락드려 죄송합니다. 부득이한 사정이 생겨 약속 시간 조정이 가능하실지 여쭤보고자 합니다. 불편을 드려 정말 죄송합니다.",
     color: "text-orange-500 bg-orange-50 border-orange-200"
   },
   {
@@ -50,8 +58,10 @@ const TONE_DATA = [
     emoji: "🤝",
     name: "협조적인",
     target: "팀원, 선배",
+    originalSubject: "자료 좀 보내주세요.",
+    subject: "자료 공유 부탁드립니다.",
     original: "자료 좀 보내주시면 안될까요?",
-    result: "바쁘신 와중에 번거로우시겠지만, 기획안 작성을 위해 지난주 회의록을 공유해 주실 수 있으실까요? 이번 주 금요일까지 받을 수 있다면 정말 감사하겠습니다. 어려우시면 말씀해 주세요!",
+    result: "바쁘신 와중에 번거로우시겠지만, 필요한 자료를 공유해 주실 수 있으실까요? 어려우시면 말씀해 주세요!",
     color: "text-purple-600 bg-purple-50 border-purple-200"
   }
 ];
@@ -107,7 +117,8 @@ const MainHome = () => {
               {/* 위쪽: 내가 쓴 말 */}
               <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3 mb-4 opacity-80">
                 <span className="w-fit bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">내가 쓴 말</span>
-                <p className="text-gray-600 text-sm mt-1 sm:mt-0 leading-snug">교수님 저 내일 아파서 결석합니다. 죄송합니다.</p>
+                {/* break-keep: 단어 단위로 줄바꿈 방지 */}
+                <p className="text-gray-600 text-sm mt-1 sm:mt-0 leading-snug break-keep">교수님 저 내일 아파서 결석합니다. 죄송합니다.</p>
               </div>
 
               {/* 아래쪽: 정중한 */}
@@ -115,8 +126,8 @@ const MainHome = () => {
                 <span className="w-fit bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1">
                   <Sparkles size={12} /> 정중한
                 </span>
-                <p className="text-gray-900 font-medium text-sm md:text-[15px] leading-relaxed mt-1 sm:mt-0">
-                  교수님, 안녕하십니까. 다름이 아니오라 내일 건강상의 사유로 부득이하게 수업에 참석하지 못하게 되어 양해를 구하고자 연락 올립니다.
+                <p className="text-gray-900 font-medium text-sm md:text-[15px] leading-relaxed mt-1 sm:mt-0 break-keep">
+                  교수님, 안녕하십니까. 다름이 아니라 내일 건강상의 사유로 부득이하게 수업에 참석하지 못하게 되어 양해를 구하고자 연락 올립니다.
                 </p>
               </div>
             </div>
@@ -142,16 +153,16 @@ const MainHome = () => {
           className="max-w-5xl mx-auto w-full"
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-10 md:mb-16 leading-snug">
-            교수님, 면접관, 직장 상사...<br />
+            교수님, 클라이언트, 직장 상사...<br />
             메일 보낼 때마다 망설여지셨나요?
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 text-left">
             {[
-              { title: "어려운 격식", desc: "어떤 단어를 써야 할지 고민하느라 버려지는 시간들" },
-              { title: "번거로운 챗GPT", desc: "AI를 쓰려 해도 매번 프롬프트를 입력해야 하는 귀찮음" },
-              { title: "복잡한 과정", desc: "작성하고, 복사하고, 이메일 앱을 켜서 붙여넣는 수고로움" }
+              { title: "어려운 격식", desc: <>어떤 단어를 써야 할지 고민하느라<br /> 버려지는 시간들</> },
+              { title: "번거로운 AI 활용", desc: <>AI를 쓰려 해도 매번 프롬프트를<br /> 입력해야 하는 귀찮음</> },
+              { title: "끝없는 검토", desc: <>보내도 될지 몰라 몇 번이고<br /> 다시 읽고 수정하는 수고로움</> }
             ].map((item, idx) => (
-              <div key={idx} className="bg-gray-900 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-gray-800">
+              <div key={idx} className="bg-gray-900 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-gray-800 sm:[&:last-child:nth-child(odd)]:col-span-2 sm:[&:last-child:nth-child(odd)]:mx-auto sm:[&:last-child:nth-child(odd)]:w-1/2 md:[&:last-child:nth-child(odd)]:col-span-1 md:[&:last-child:nth-child(odd)]:mx-0 md:[&:last-child:nth-child(odd)]:w-full">
                 <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3 text-blue-400">{item.title}</h3>
                 <p className="text-sm md:text-base text-gray-400 leading-relaxed">{item.desc}</p>
               </div>
@@ -174,11 +185,11 @@ const MainHome = () => {
           </h2>
           <p className="text-base md:text-xl text-gray-500 mb-10 md:mb-20">단 4단계면 완벽한 이메일이 완성됩니다.</p>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 break-keep">
             {[
               { icon: <Mail size={32} className="md:w-10 md:h-10" />, title: "1. 이메일 입력", desc: "받는 사람의 이메일을 입력합니다." },
               { icon: <Zap size={32} className="md:w-10 md:h-10" />, title: "2. 내용 작성", desc: "구어체, 반말 상관없이 편하게 쓰세요." },
-              { icon: <RefreshCcw size={32} className="md:w-10 md:h-10" />, title: "3. 톤앤매너 선택", desc: "상황에 맞는 스타일을 고르세요." },
+              { icon: <RefreshCcw size={32} className="md:w-10 md:h-10" />, title: "3. 톤앤매너 선택", desc: "추천 톤을 참고해 원하는 스타일을 고르세요." },
               { icon: <Send size={32} className="md:w-10 md:h-10" />, title: "4. 확인 및 전송", desc: "AI가 바꾼 내용을 확인하고 바로 보내세요." }
             ].map((step, idx) => (
               <div key={idx} className="flex flex-col items-center text-center p-3 md:p-6">
@@ -209,7 +220,7 @@ const MainHome = () => {
             </h2>
             <p className="text-sm md:text-lg text-gray-500 mb-4 md:mb-8">버튼을 눌러 실시간 변환을 확인해보세요.</p>
 
-            <div className="flex flex-row lg:flex-col gap-2 md:gap-3 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-hide w-full px-1">
+            <div className="flex flex-row lg:flex-col gap-2 md:gap-3 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-hide w-full px-1 justify-center lg:justify-start">
               {TONE_DATA.map((tone, idx) => (
                 <button
                   key={tone.id}
@@ -246,10 +257,32 @@ const MainHome = () => {
                   {TONE_DATA[activeTone].target}
                 </div>
               </div>
-              <div className="flex items-center gap-3 md:gap-4">
-                <span className="text-gray-400 w-8 md:w-12 text-xs md:text-sm font-medium">Sub.</span>
-                <div className="text-gray-900 font-bold text-sm md:text-base truncate">
-                  {activeTone === 4 ? "Document attached" : "연락드립니다."}
+              <div className="flex items-start gap-3 md:gap-4">
+                <span className="text-gray-400 w-8 md:w-12 text-xs md:text-sm font-medium mt-1">Sub.</span>
+                <div className="flex flex-col gap-1 text-sm text-gray-600 flex-1">
+                  {/* 원본 제목 */}
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">원본 제목:</span>
+                    <span className="text-gray-400 line-through decoration-gray-300">
+                      {TONE_DATA[activeTone].originalSubject}
+                    </span>
+                  </div>
+
+                  {/* AI 변환 제목 */}
+                  <motion.div
+                    key={activeTone}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="flex items-center gap-2 mt-1"
+                  >
+                    <span className="flex items-center gap-1 font-bold text-blue-600 shrink-0">
+                      AI 변환 제목:
+                    </span>
+                    <span className="text-blue-900 font-bold text-sm md:text-base flex-1">
+                      {TONE_DATA[activeTone].subject}
+                    </span>
+                  </motion.div>
                 </div>
               </div>
             </div>
@@ -273,7 +306,7 @@ const MainHome = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <p className="text-base sm:text-lg md:text-2xl text-gray-900 font-medium leading-relaxed">
+                  <p className="text-base sm:text-lg md:text-2xl text-gray-900 font-medium leading-relaxed break-keep">
                     {TONE_DATA[activeTone].result}
                   </p>
                 </motion.div>
@@ -306,7 +339,7 @@ const MainHome = () => {
             지금 바로 완벽한 이메일을<br />작성해 보세요.
           </h2>
           <p className="text-base sm:text-lg md:text-2xl text-blue-200 mb-8 md:mb-10 font-light px-4">
-            가입부터 첫 이메일 전송까지, 단 1분이면 충분합니다.
+            시작부터 첫 이메일 전송까지, 단 1분이면 충분합니다.
           </p>
           <button
             onClick={() => navigate('/compose')}
