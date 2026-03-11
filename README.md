@@ -1,20 +1,16 @@
 # 📧 AI Message
 톤앤매너를 선택하면 AI가 격식체 이메일로 변환해주는 작성 도우미
 
+![Image](https://github.com/user-attachments/assets/f7023e13-0ebb-42a0-9f69-30f82b31a2ca)
+
 <br>
 
 ## 📚 목차
-- [🎬 전체 데모](#-전체-데모)
 - [🎯 프로젝트 개요](#-프로젝트-개요)
 - [✨ 주요 기능](#-주요-기능)
 - [🛠 기술 스택](#-기술-스택)
 - [📸 Demo](#-demo)
 - [🚀 실행 방법](#-실행-방법)
-
-<br>
-
-## 🎬 전체 데모
-![Image](https://github.com/user-attachments/assets/f7023e13-0ebb-42a0-9f69-30f82b31a2ca)
 
 <br>
 
