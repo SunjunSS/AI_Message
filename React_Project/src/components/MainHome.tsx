@@ -1,5 +1,5 @@
 import { useState } from 'react';
-// // Variants는 framer-motion이 제공하는 타입
+// Variants는 framer-motion이 제공하는 타입
 import { motion, Variants } from 'framer-motion';
 import { Mail, Zap, RefreshCcw, Send, ChevronDown, Sparkles} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -81,6 +81,7 @@ const TONE_DATA: ToneItem[] = [
 ];
 
 const MainHome = () => {
+  // 초기값 0이 number 타입임이 명확하여 타입 추론 가능 → 타입 명시 불필요
   const [activeTone, setActiveTone] = useState(0);
   const navigate = useNavigate();
 

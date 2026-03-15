@@ -41,6 +41,9 @@ const GoogleLoginButton = () => {
 export default GoogleLoginButton;
 
 
-// return 영역, <태그> ~~ </태그> 안 = JSX,TSX = {/* */}
+// JSX = JavaScript + XML (HTML과 유사한 문법)
+// TSX = TypeScript + JSX (TS의 타입 시스템 + JS 로직 + HTML 같은 UI 문법)
+// return 영역, <태그> ~~ </태그> 안 = JSX = {/* */}
+// .tsx 파일이지만 return 안은 JSX 문법
 // 나머지 = JavaScript / TypeScript
 // 단, { } 안은 JavaScript / TypeScript = //

@@ -25,6 +25,9 @@ const TONE_OPTIONS: ToneOption[] = [
 ];
 
 // 안전한 Base64 인코딩 함수 (UTF-8 지원)
+// string을 받아 string 반환 → btoa()가 항상 string 반환하므로 타입 자동 추론 가능
+// strict: true 환경에서 매개변수 타입 추론 불가 → str: string 명시 필요
+// strict: false면 암묵적 any로 허용되지만 strict: true면 오류
 const base64EncodeUnicode = (str: string): string => {
   const utf8Bytes = new TextEncoder().encode(str);
   let binary = '';
@@ -42,6 +45,7 @@ const MessageCompose = () => {
   const [emailSubject, setEmailSubject] = useState('');
   const [convertedSubject, setConvertedSubject] = useState('');
   const [originalMessage, setOriginalMessage] = useState('');
+  // 초기값 null이지만 선택 시 tone.id(string)가 저장되므로 string | null 명시
   const [selectedTone, setSelectedTone] = useState<string | null>(null);
   const [convertedMessage, setConvertedMessage] = useState('');
   const [isConverting, setIsConverting] = useState(false);
@@ -49,10 +53,12 @@ const MessageCompose = () => {
   const [isEditing, setIsEditing] = useState(false);  // 본문 영역의 편집 상태 관리
   const [isEditingSubject, setIsEditingSubject] = useState(false);  // 제목 영역의 편집 상태 관리
   const [step, setStep] = useState(0);
+  // 초기값 빈 배열, 추천 톤 id(string)들을 담는 배열이므로 string[] 명시
   const [recommendedTones, setRecommendedTones] = useState<string[]>([]);  // 추천 톤 키 리스트
   const [isAnalyzing, setIsAnalyzing] = useState(false);         // 감정 분석 중 여부
 
   // 이메일 형식 체크 함수(정규식)
+  // string을 받아 boolean 반환 → .test()가 항상 boolean 반환하므로 타입 자동 추론 가능
   const isValidEmail = (email: string): boolean => {
     // 간단하고 안전한 이메일 패턴 (RFC 5322의 권장범위 내)
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -117,6 +123,7 @@ const MessageCompose = () => {
       setRecommendedTones(data.recommended_tones);  // 추천 톤 저장
 
     } catch (error) {
+      // catch의 error는 unknown 타입 → as Error로 타입 명시
       const err = error as Error;
       console.error('❌ 감정 분석 실패:', err);
     } finally {
@@ -197,6 +204,7 @@ const MessageCompose = () => {
       setStep(2);
 
     } catch (error) {
+      // catch의 error는 unknown 타입 → as Error로 타입 명시
       const err = error as Error;
       console.error('❌ AI 변환 실패:', err);
       alert('AI 변환에 실패했습니다. 다시 시도해주세요.');
@@ -292,6 +300,7 @@ const MessageCompose = () => {
       handleReset();
 
     } catch (error) {
+      // catch의 error는 unknown 타입 → as Error로 타입 명시
       const err = error as Error;
       console.error('❌ Gmail 전송 실패:', err);
       setIsSending(false);
