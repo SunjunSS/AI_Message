@@ -11,7 +11,7 @@
     "isolatedModules": true,  // 각 파일을 독립적으로 처리 (Vite가 파일을 하나씩 변환하는 방식이라 필요)
     "noEmit": true,  // TS가 JS 파일을 직접 생성하지 않음 (JS 변환은 Vite가 담당, TS는 타입 검사만)
     "jsx": "react-jsx",
-    "strict": false  // 엄격한 타입 검사 여부 | false: 타입 일부 생략해도 오류X -> 마이그레이션 초반에 유용
+    "strict": true  // 엄격한 타입 검사 여부 | false: 타입 일부 생략해도 오류X -> 마이그레이션 초반에 유용
   },
   "include": ["src"]  // TS 컴파일러가 검사할 파일 위치 (src 폴더 전체)
 }

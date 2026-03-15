@@ -3,13 +3,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Sparkles, Send, Edit3, Check, Loader2, ArrowLeft, User, Shield } from 'lucide-react';
 import GoogleLoginButton from './GoogleLogin';
 
+// ColorType: 톤앤매너 버튼에서 사용 가능한 색상 값을 제한
+// 5가지 색상 외에는 사용 불가 (오타, 없는 색상 방지)
+type ColorType = 'blue' | 'slate' | 'emerald' | 'orange' | 'purple'
+
 // TONE_OPTIONS 타입 정의 추가
 type ToneOption = {
   id: string
   emoji: string
   name: string
   target: string
-  color: string
+  color: ColorType
 }
 
 const TONE_OPTIONS: ToneOption[] = [
@@ -307,7 +311,8 @@ const MessageCompose = () => {
   };
 
   // AI 추천 톤: 글로우 효과 클래스 반환
-  const getPulseClass = (color: string): string => {
+  // string 대신 ColorType으로 타입 지정하여 colors 객체에 없는 키 접근 방지
+  const getPulseClass = (color: ColorType): string => {
     const colors = {
       blue: 'pulse-blue',
       slate: 'pulse-slate',
@@ -319,7 +324,8 @@ const MessageCompose = () => {
   };
 
   // 톤앤매너 버튼 스타일(선택,미선택) 클래스 반환
-  const getColorClasses = (color: string, active = false): string => {
+  // string 대신 ColorType으로 타입 지정하여 colors 객체에 없는 키 접근 방지
+  const getColorClasses = (color: ColorType, active = false): string => {
     const colors = {
       blue: active ? 'bg-blue-50 border-blue-500 text-blue-700' : 'hover:bg-blue-50 hover:border-blue-200',
       slate: active ? 'bg-slate-50 border-slate-500 text-slate-700' : 'hover:bg-slate-50 hover:border-slate-200',
