@@ -1,14 +1,28 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Mail, Zap, RefreshCcw, Send, ChevronDown, Sparkles, Edit3 } from 'lucide-react';
+// // Variants는 framer-motion이 제공하는 타입
+import { motion, Variants } from 'framer-motion';
+import { Mail, Zap, RefreshCcw, Send, ChevronDown, Sparkles} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const fadeUpVariant = {
+const fadeUpVariant: Variants = {
   hidden: { opacity: 0, y: 50 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
 };
 
-const TONE_DATA = [
+// TONE_DATA 타입 정의 추가
+type ToneItem = {
+  id: number
+  emoji: string
+  name: string
+  target: string
+  originalSubject: string
+  subject: string
+  original: string
+  result: string
+  color: string
+}
+
+const TONE_DATA: ToneItem[] = [
   {
     id: 0,
     emoji: "🎓",

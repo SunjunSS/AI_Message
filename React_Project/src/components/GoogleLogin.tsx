@@ -41,6 +41,6 @@ const GoogleLoginButton = () => {
 export default GoogleLoginButton;
 
 
-// return 영역, <태그> ~~ </태그> 안 = JSX = {/* */}
-// 나머지 = JavaScript
-// 단, { } 안은 JavaScript = //
+// return 영역, <태그> ~~ </태그> 안 = JSX,TSX = {/* */}
+// 나머지 = JavaScript / TypeScript
+// 단, { } 안은 JavaScript / TypeScript = //

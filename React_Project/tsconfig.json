@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",  // 어떤 JS 버전으로 변환할지
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],  // 코드가 실행될 환경 설정
+    "module": "ESNext",  // import/export 문법 처리 방식 (Vite가 ESNext 방식 사용)
+    "skipLibCheck": true,  // 라이브러리 파일의 타입 체크를 건너뛰기
+    "moduleResolution": "bundler",  // 모듈을 찾는 방식 (bundler = Vite 같은 번들러에 최적화된 설정)
+    "allowImportingTsExtensions": true,  // .ts, .tsx 확장자를 명시적으로 import 가능하게 함
+    "resolveJsonModule": true,  // .json 파일을 import해서 사용 가능하게 함
+    "isolatedModules": true,  // 각 파일을 독립적으로 처리 (Vite가 파일을 하나씩 변환하는 방식이라 필요)
+    "noEmit": true,  // TS가 JS 파일을 직접 생성하지 않음 (JS 변환은 Vite가 담당, TS는 타입 검사만)
+    "jsx": "react-jsx",
+    "strict": false  // 엄격한 타입 검사 여부 | false: 타입 일부 생략해도 오류X -> 마이그레이션 초반에 유용
+  },
+  "include": ["src"]  // TS 컴파일러가 검사할 파일 위치 (src 폴더 전체)
+}
+
+
+// JS는 타입이 없는 언어라서 별도 설정 필요X 
+// TS는 컴퍼일러가 코드를 검사해야 하기 때문에,
+// "어떤 기준으로 검사할지"를 tsconfig.json 파일에 설정해줘야 한다.

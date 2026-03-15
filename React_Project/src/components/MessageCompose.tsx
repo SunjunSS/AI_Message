@@ -3,7 +3,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Sparkles, Send, Edit3, Check, Loader2, ArrowLeft, User, Shield } from 'lucide-react';
 import GoogleLoginButton from './GoogleLogin';
 
-const TONE_OPTIONS = [
+// TONE_OPTIONS 타입 정의 추가
+type ToneOption = {
+  id: string
+  emoji: string
+  name: string
+  target: string
+  color: string
+}
+
+const TONE_OPTIONS: ToneOption[] = [
   { id: 'polite', emoji: '🎓', name: '정중한', target: '상사, 교수님', color: 'blue' },
   { id: 'professional', emoji: '💼', name: '전문적인', target: '동료, 고객사', color: 'slate' },
   { id: 'persuasive', emoji: '💡', name: '설득적인', target: '투자자, 협업 대상', color: 'emerald' },
@@ -12,7 +21,7 @@ const TONE_OPTIONS = [
 ];
 
 // 안전한 Base64 인코딩 함수 (UTF-8 지원)
-const base64EncodeUnicode = (str) => {
+const base64EncodeUnicode = (str: string): string => {
   const utf8Bytes = new TextEncoder().encode(str);
   let binary = '';
   utf8Bytes.forEach(byte => {
@@ -29,18 +38,18 @@ const MessageCompose = () => {
   const [emailSubject, setEmailSubject] = useState('');
   const [convertedSubject, setConvertedSubject] = useState('');
   const [originalMessage, setOriginalMessage] = useState('');
-  const [selectedTone, setSelectedTone] = useState(null);
+  const [selectedTone, setSelectedTone] = useState<string | null>(null);
   const [convertedMessage, setConvertedMessage] = useState('');
   const [isConverting, setIsConverting] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isEditing, setIsEditing] = useState(false);  // 본문 영역의 편집 상태 관리
   const [isEditingSubject, setIsEditingSubject] = useState(false);  // 제목 영역의 편집 상태 관리
   const [step, setStep] = useState(0);
-  const [recommendedTones, setRecommendedTones] = useState([]);  // 추천 톤 키 리스트
+  const [recommendedTones, setRecommendedTones] = useState<string[]>([]);  // 추천 톤 키 리스트
   const [isAnalyzing, setIsAnalyzing] = useState(false);         // 감정 분석 중 여부
 
   // 이메일 형식 체크 함수(정규식)
-  const isValidEmail = (email) => {
+  const isValidEmail = (email: string): boolean => {
     // 간단하고 안전한 이메일 패턴 (RFC 5322의 권장범위 내)
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
@@ -104,7 +113,8 @@ const MessageCompose = () => {
       setRecommendedTones(data.recommended_tones);  // 추천 톤 저장
 
     } catch (error) {
-      console.error('❌ 감정 분석 실패:', error);
+      const err = error as Error;
+      console.error('❌ 감정 분석 실패:', err);
     } finally {
       setIsAnalyzing(false);
     }
@@ -183,7 +193,8 @@ const MessageCompose = () => {
       setStep(2);
 
     } catch (error) {
-      console.error('❌ AI 변환 실패:', error);
+      const err = error as Error;
+      console.error('❌ AI 변환 실패:', err);
       alert('AI 변환에 실패했습니다. 다시 시도해주세요.');
       setIsConverting(false);
     }
@@ -277,14 +288,15 @@ const MessageCompose = () => {
       handleReset();
 
     } catch (error) {
-      console.error('❌ Gmail 전송 실패:', error);
+      const err = error as Error;
+      console.error('❌ Gmail 전송 실패:', err);
       setIsSending(false);
 
-      if (error.message && error.message.includes('만료')) {
+      if (err.message && err.message.includes('만료')) {
         alert('❌ 로그인이 만료되었습니다. 다시 로그인해주세요.');
         handleLogout();
       } else {
-        alert(`❌ 이메일 전송에 실패했습니다.\n\n${error.message}`);
+        alert(`❌ 이메일 전송에 실패했습니다.\n\n${err.message}`);
       }
     }
   };
@@ -295,7 +307,7 @@ const MessageCompose = () => {
   };
 
   // AI 추천 톤: 글로우 효과 클래스 반환
-  const getPulseClass = (color) => {
+  const getPulseClass = (color: string): string => {
     const colors = {
       blue: 'pulse-blue',
       slate: 'pulse-slate',
@@ -307,7 +319,7 @@ const MessageCompose = () => {
   };
 
   // 톤앤매너 버튼 스타일(선택,미선택) 클래스 반환
-  const getColorClasses = (color, active = false) => {
+  const getColorClasses = (color: string, active = false): string => {
     const colors = {
       blue: active ? 'bg-blue-50 border-blue-500 text-blue-700' : 'hover:bg-blue-50 hover:border-blue-200',
       slate: active ? 'bg-slate-50 border-slate-500 text-slate-700' : 'hover:bg-slate-50 hover:border-slate-200',
