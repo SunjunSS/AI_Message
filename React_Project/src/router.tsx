@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 import MainHome from './components/MainHome'
 import MessageCompose from './components/MessageCompose'
-import GoogleCallback from './components/GoogleCallback'  // ✅ 수정
+import GoogleCallback from './components/GoogleCallback'
 
 const router = createBrowserRouter([
   {
@@ -13,7 +13,7 @@ const router = createBrowserRouter([
     element: <MessageCompose />,
   },
   {
-    path: '/auth/google/callback',  // ✅ 수정
+    path: '/auth/google/callback',
     element: <GoogleCallback />,
   },
 ])

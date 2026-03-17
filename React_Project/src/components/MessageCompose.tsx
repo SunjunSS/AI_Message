@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Sparkles, Send, Edit3, Check, Loader2, ArrowLeft, User, Shield } from 'lucide-react';
 import GoogleLoginButton from './GoogleLogin';
+// default export: 파일당 1개, 중괄호 없이 import → 컴포넌트
+// named export: 파일당 여러개, 중괄호로 import → 타입/함수 등
+import MessageHistory, { HistoryItem } from './MessageHistory';
 
 // ColorType: 톤앤매너 버튼에서 사용 가능한 색상 값을 제한
 // 5가지 색상 외에는 사용 불가 (오타, 없는 색상 방지)
@@ -56,6 +59,10 @@ const MessageCompose = () => {
   // 초기값 빈 배열, 추천 톤 id(string)들을 담는 배열이므로 string[] 명시
   const [recommendedTones, setRecommendedTones] = useState<string[]>([]);  // 추천 톤 키 리스트
   const [isAnalyzing, setIsAnalyzing] = useState(false);         // 감정 분석 중 여부
+  // 변환된 히스토리 아이템들을 배열로 저장, 변환 시 앞에 추가
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  // 현재 화면에 표시 중인 히스토리 아이템의 id, 선택된 카드 강조 효과
+  const [currentHistoryId, setCurrentHistoryId] = useState<number | null>(null);
 
   // 이메일 형식 체크 함수(정규식)
   // string을 받아 boolean 반환 → .test()가 항상 boolean 반환하므로 타입 자동 추론 가능
@@ -200,6 +207,21 @@ const MessageCompose = () => {
 
       setConvertedSubject(subjectData.converted);   // 백엔드에서 받은 변환된 제목을 상태 변수에 저장
       setConvertedMessage(messageData.converted);   // 백엔드에서 받은 변환된 본문을 상태 변수에 저장
+
+      // 변환 완료 후 히스토리 아이템 생성
+      const newItem: HistoryItem = {
+        id: Date.now(),  // 현재 시간을 고유 id로 사용
+        tone: selectedTone!,  // 선택된 톤 id
+        toneEmoji: TONE_OPTIONS.find(t => t.id === selectedTone)?.emoji || '',  // selectedTone(톤의 id값)으로 TONE_OPTIONS에서 해당 이모지 조회
+        toneColor: TONE_OPTIONS.find(t => t.id === selectedTone)?.color || 'blue',
+        toneName: TONE_OPTIONS.find(t => t.id === selectedTone)?.name || '',
+        subject: subjectData.converted,  // 변환된 제목
+        message: messageData.converted,  // 변환된 본문
+        createdAt: new Date(),  // 생성 시간
+      };
+      setHistory(prev => [newItem, ...prev]);  // 히스토리 배열 맨 앞에 추가 (최신순)
+      setCurrentHistoryId(newItem.id);  // 방금 생성한 아이템을 현재 선택 상태로 지정
+
       setIsConverting(false);
       setStep(2);
 
@@ -514,8 +536,10 @@ const MessageCompose = () => {
                         key={tone.id}
                         // 톤 선택,취소 토글 (같은 톤 재클릭 시 선택 해제)
                         onClick={() => setSelectedTone(selectedTone === tone.id ? null : tone.id)}
+                        disabled={isConverting}
                         className={`relative p-4 rounded-xl border-2 text-left w-full sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]
                           transition-all duration-300
+                          ${isConverting ? 'cursor-not-allowed' : ''}
                           ${selectedTone === tone.id  // 선택된 톤 -> getColorClasses()
                             ? getColorClasses(tone.color, true) + ' shadow-md'
                             : 'border-gray-200 bg-white ' + getColorClasses(tone.color)
@@ -610,7 +634,16 @@ const MessageCompose = () => {
                           style={{ minWidth: "180px" }}
                         />
                         <button
-                          onClick={() => setIsEditingSubject(false)}  // 제목 수정 버튼 클릭 시 편집 모드로 진입
+                          // 제목 수정 완료 버튼 클릭 시 편집 모드 종료
+                          onClick={() => {
+                            setIsEditingSubject(false);
+                            // 히스토리 아이템 중 id가 현재 선택된 히스토리 아이템의 id와 같은 아이템을 찾아서 subject를 수정된 convertedSubject로 업데이트
+                            setHistory(prev => prev.map(item =>
+                              item.id === currentHistoryId
+                                ? { ...item, subject: convertedSubject }
+                                : item
+                            ));
+                          }}
                           className="ml-2 text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
                         >
                           <Check size={14} />
@@ -621,7 +654,7 @@ const MessageCompose = () => {
                       <>
                         <span className="text-blue-900 font-bold">{convertedSubject}</span>
                         <button
-                          onClick={() => setIsEditingSubject(true)}  // 제목 수정 완료 버튼 클릭 시 편집 모드 종료
+                          onClick={() => setIsEditingSubject(true)}  // 제목 수정 버튼 클릭 시 편집 모드로 진입
                           className="ml-2 text-xs text-gray-600 hover:text-blue-600 flex items-center gap-1 transition-colors"
                         >
                           <Edit3 size={14} />
@@ -655,7 +688,17 @@ const MessageCompose = () => {
                     </span>
                   </div>
                   <button
-                    onClick={() => setIsEditing(!isEditing)}  // 편집 버튼 클릭 시 편집 모드 ↔ 표시 모드 전환 토글
+                    onClick={() => {
+                      if (isEditing) {
+                        // 히스토리 아이템 중 id가 현재 선택된 히스토리 아이템의 id와 같은 아이템을 찾아서 message를 수정된 convertedMessage로 업데이트
+                        setHistory(prev => prev.map(item =>
+                          item.id === currentHistoryId
+                            ? { ...item, message: convertedMessage }
+                            : item
+                        ));
+                      }
+                      setIsEditing(!isEditing);
+                    }}
                     className="text-xs text-gray-600 hover:text-blue-600 flex items-center gap-1 transition-colors"
                   >
                     <Edit3 size={14} />
@@ -678,10 +721,29 @@ const MessageCompose = () => {
                 )}
               </div>
 
+              {/* MessageCompose의 history(히스토리 배열), currentHistoryId(현재 선택된 id)를 */}
+              {/* MessageHistory의 history, currentId props로 넘겨서 카드 목록 UI를 그림 */}
+              <MessageHistory
+                history={history}
+                currentId={currentHistoryId}
+                // 부모가 정의한 함수
+                // 자식(MessageHistory)이 카드 클릭 시 클릭한 카드의 HistoryItem 객체를 item에 채워서 실행
+                onSelect={(item) => {
+                  setConvertedSubject(item.subject);  // 클릭한 카드의 제목을 화면에 반영
+                  setConvertedMessage(item.message);
+                  setSelectedTone(item.tone);
+                  setCurrentHistoryId(item.id);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });  // 페이지 맨 위로 부드럽게 스크롤
+                }}
+              />
+
               {/* 액션 버튼 */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
-                  onClick={() => setStep(1)}
+                  onClick={() => {
+                    setStep(1);
+                    setSelectedTone(null);
+                  }}
                   className="flex-1 bg-gray-100 text-gray-700 font-semibold py-4 px-6 rounded-xl hover:bg-gray-200 transition-all duration-200 flex items-center justify-center gap-2"
                 >
                   <ArrowLeft size={20} />
