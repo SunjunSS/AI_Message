@@ -1,7 +1,7 @@
 # 📧 AI Message
 톤앤매너를 선택하면 AI가 격식체 이메일로 변환해주는 작성 도우미
 
-![Image](https://github.com/user-attachments/assets/f7023e13-0ebb-42a0-9f69-30f82b31a2ca)
+![Image](https://github.com/user-attachments/assets/45d19f30-5203-4ef5-8793-c0cfcaede234)
 
 <br>
 
