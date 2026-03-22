@@ -5,6 +5,7 @@ import GoogleLoginButton from './GoogleLogin';
 // default export: 파일당 1개, 중괄호 없이 import → 컴포넌트
 // named export: 파일당 여러개, 중괄호로 import → 타입/함수 등
 import MessageHistory, { HistoryItem } from './MessageHistory';
+import StatsDashboard from './StatsDashboard';
 
 // ColorType: 톤앤매너 버튼에서 사용 가능한 색상 값을 제한
 // 5가지 색상 외에는 사용 불가 (오타, 없는 색상 방지)
@@ -63,6 +64,8 @@ const MessageCompose = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   // 현재 화면에 표시 중인 히스토리 아이템의 id, 선택된 카드 강조 효과
   const [currentHistoryId, setCurrentHistoryId] = useState<number | null>(null);
+  // StatsDashboard 재조회 신호 - 값이 바뀔 때마다 통계를 다시 불러옴
+  const [statsTrigger, setStatsTrigger] = useState(0);
 
   // 이메일 형식 체크 함수(정규식)
   // string을 받아 boolean 반환 → .test()가 항상 boolean 반환하므로 타입 자동 추론 가능
@@ -80,6 +83,7 @@ const MessageCompose = () => {
       setIsLoggedIn(true);
       setSenderEmail(savedEmail);
       setSenderName(savedName || '');
+      setStatsTrigger(prev => prev + 1);  // 값 변화 자체가 StatsDashboard에 통계 재조회 신호를 보냄
       setStep(1);
     }
   }, []);
@@ -164,6 +168,7 @@ const MessageCompose = () => {
     try {
       // 1. Node.js 백엔드로 본문 변환 요청
       // 백엔드 서버 엔드포인트: port 3000의 /api/tone-convert
+      // handleConvert는 async 함수 → await 방식으로 호출
       const messageResponse = await fetch('http://localhost:3000/api/tone-convert', {
         method: 'POST',
         headers: {
@@ -185,6 +190,7 @@ const MessageCompose = () => {
 
       // 2. Node.js 백엔드로 제목 변환 요청 (변환된 본문을 전달)
       // 백엔드 서버 엔드포인트: port 3000의 /api/tone-convert
+      // handleConvert는 async 함수 → await 방식으로 호출
       const subjectResponse = await fetch('http://localhost:3000/api/tone-convert', {
         method: 'POST',
         headers: {
@@ -221,6 +227,33 @@ const MessageCompose = () => {
       };
       setHistory(prev => [newItem, ...prev]);  // 히스토리 배열 맨 앞에 추가 (최신순)
       setCurrentHistoryId(newItem.id);  // 방금 생성한 아이템을 현재 선택 상태로 지정
+
+      // 3. MySQL에 통계 저장
+      // 백엔드 서버 엔드포인트: port 3000의 /api/stats/save
+      // handleConvert는 async 함수 → await 방식으로 호출
+      try {
+        const statsResponse = await fetch('http://localhost:3000/api/stats/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: senderEmail,
+            name: senderName,
+            tone: selectedTone
+          })
+        });
+
+        if (!statsResponse.ok) {
+          throw new Error('통계 저장 실패');
+        }
+
+        // 저장 성공 시에만 +1 → StatsDashboard 통계 재조회 트리거
+        setStatsTrigger(prev => prev + 1); 
+
+      } catch (statsError) {
+        // 통계 저장 실패는 변환 실패와 별개로 처리
+        console.error('⚠️ 통계 저장 실패:', statsError);
+        alert('통계 저장에 실패했습니다. 사용 통계가 정확하지 않을 수 있어요.');
+      }
 
       setIsConverting(false);
       setStep(2);
@@ -287,8 +320,8 @@ const MessageCompose = () => {
         .replace(/=+$/, '');
 
       console.log('📧 Gmail API 호출 중...');
-      console.log('받는사람:', recipientEmail);
       console.log('보내는사람:', senderEmail);
+      console.log('받는사람:', recipientEmail);
       console.log('제목:', subject);
 
       // Gmail API 호출 및 성공,에러 처리
@@ -528,41 +561,53 @@ const MessageCompose = () => {
                   <Sparkles size={18} className="text-blue-600" />
                   톤앤매너 선택
                 </label>
-                <div className="flex flex-wrap justify-center gap-3">
-                  {TONE_OPTIONS.map((tone) => {
-                    console.log(tone.id, '포함여부:', recommendedTones.includes(tone.id));
-                    return (
-                      <button
-                        key={tone.id}
-                        // 톤 선택,취소 토글 (같은 톤 재클릭 시 선택 해제)
-                        onClick={() => setSelectedTone(selectedTone === tone.id ? null : tone.id)}
-                        disabled={isConverting}
-                        className={`relative p-4 rounded-xl border-2 text-left w-full sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]
-                          transition-all duration-300
-                          ${isConverting ? 'cursor-not-allowed' : ''}
-                          ${selectedTone === tone.id  // 선택된 톤 -> getColorClasses()
-                            ? getColorClasses(tone.color, true) + ' shadow-md'
-                            : 'border-gray-200 bg-white ' + getColorClasses(tone.color)
-                          }
-                          ${recommendedTones.includes(tone.id) && selectedTone === null  // 추천된 톤 -> getPulseClass()
-                            ? getPulseClass(tone.color)  // 선택된 톤이 없을 때만 글로우 효과
-                            : ''
-                          }
+
+                {/* flex로 톤 버튼들과 통계 대시보드를 좌우 배치 */}
+                <div className="flex gap-4 items-start">
+
+                  {/* 왼쪽: 톤 버튼들 */}
+                  <div className="flex-1 flex flex-wrap justify-center gap-3">
+                    {TONE_OPTIONS.map((tone) => {
+                      console.log(tone.id, '포함여부:', recommendedTones.includes(tone.id));
+                      return (
+                        <button
+                          key={tone.id}
+                          // 톤 선택,취소 토글 (같은 톤 재클릭 시 선택 해제)
+                          onClick={() => setSelectedTone(selectedTone === tone.id ? null : tone.id)}
+                          disabled={isConverting}
+                          className={`relative p-4 rounded-xl border-2 text-left w-[calc(50%-0.375rem)]
+                            transition-all duration-300
+                            ${isConverting ? 'cursor-not-allowed' : ''}
+                            ${selectedTone === tone.id  // 선택된 톤 -> getColorClasses()
+                              ? getColorClasses(tone.color, true) + ' shadow-md'
+                              : 'border-gray-200 bg-white ' + getColorClasses(tone.color)
+                            }
+                            ${recommendedTones.includes(tone.id) && selectedTone === null  // 추천된 톤 -> getPulseClass()
+                              ? getPulseClass(tone.color)  // 선택된 톤이 없을 때만 글로우 효과
+                              : ''
+                            }
                         `}
-                      >
-                        {selectedTone === tone.id && (
-                          <div className="absolute top-2 right-2">
-                            <Check size={18} className="text-current" />
+                        >
+                          {selectedTone === tone.id && (
+                            <div className="absolute top-2 right-2">
+                              <Check size={18} className="text-current" />
+                            </div>
+                          )}
+                          <div className="flex items-center gap-3 mb-1">
+                            <span className="text-2xl">{tone.emoji}</span>
+                            <span className="font-bold text-base">{tone.name}</span>
                           </div>
-                        )}
-                        <div className="flex items-center gap-3 mb-1">
-                          <span className="text-2xl">{tone.emoji}</span>
-                          <span className="font-bold text-base">{tone.name}</span>
-                        </div>
-                        <p className="text-xs text-gray-500 ml-9">{tone.target}</p>
-                      </button>
-                    );
-                  })}
+                          <p className="text-xs text-gray-500 ml-9">{tone.target}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* 오른쪽: 통계 사이드 패널 */}
+                  {/* MessageCompose의 senderEmail(로그인 이메일), statsTrigger(재조회 신호)를 */}
+                  {/* StatsDashboard의 email, statsTrigger props로 넘겨서 통계 UI를 그림 */}
+                  <StatsDashboard email={senderEmail} statsTrigger={statsTrigger} />
+
                 </div>
               </div>
 
